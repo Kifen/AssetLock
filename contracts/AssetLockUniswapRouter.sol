@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
 
-contract UniswapRouter {
+contract AssetLockUniswapRouter {
     ISwapRouter public immutable swapRouter;
+    IQuoter public immutable quoter;
     address public immutable token;
     address public immutable WETH9;
-    address public executor;
 
     uint24 public constant poolFee = 3000;
 
@@ -18,28 +18,17 @@ contract UniswapRouter {
 
     constructor(
         ISwapRouter _swapRouter,
+        IQuoter _quoter,
         address _token,
         address _weth9
     ) {
         swapRouter = _swapRouter;
-        executor = msg.sender;
+        quoter = _quoter;
         token = _token;
         WETH9 = _weth9;
     }
 
-    modifier onlyExecutor() {
-        require(
-            msg.sender == executor,
-            "UniswapRouter: caller is not the executor"
-        );
-        _;
-    }
-
-    function swapEthToExactToken(uint256 _amountOutMinimum)
-        external
-        payable
-        onlyExecutor
-    {
+    function _swapEthToExactToken(uint256 _amountOutMinimum) internal {
         require(msg.value > 0, "AssetLock: ZERO value");
 
         uint256 amountOut = _swap(msg.value, _amountOutMinimum, WETH9, token);
@@ -47,10 +36,8 @@ contract UniswapRouter {
         emit SwapEthToToken(msg.value, amountOut);
     }
 
-    function swapTokenToExactEth(uint256 _amountIn, uint256 _amountOutMinimum)
-        external
-        payable
-        onlyExecutor
+    function _swapTokenToExactEth(uint256 _amountIn, uint256 _amountOutMinimum)
+        internal
     {
         uint256 amountOut = _swap(_amountIn, _amountOutMinimum, token, WETH9);
 
@@ -80,5 +67,22 @@ contract UniswapRouter {
         } else {
             amountOut = swapRouter.exactInputSingle{value: msg.value}(params);
         }
+    }
+
+    function estimateExactOutputSingle(
+        address _tokenIn,
+        address _tokenOut,
+        uint24 _fee,
+        uint256 _inputAmount,
+        uint160 _sqrtPriceLimitX96
+    ) external returns (uint256) {
+        return
+            quoter.quoteExactOutputSingle(
+                _tokenIn,
+                _tokenOut,
+                _fee,
+                _inputAmount,
+                _sqrtPriceLimitX96
+            );
     }
 }
