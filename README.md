@@ -20,7 +20,7 @@ RINKEBY_URL=
 ETHERSCAN_API_KEY=
 ```
 
-The following testing scripts have been implemented:
+The following testing scripts have been implemented to enable adding liquidity to uniswap, swapping and withdrawing swapped assets:
 
 ### withdraw
 
