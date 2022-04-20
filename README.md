@@ -2,7 +2,7 @@
 
 # AssetLock
 
-AssetLock is an implementation of a trustless luck contract. Deployment addresses can be found at [contract-addresses.json](https://github.com/Kifen/AssetLock/blob/main/contract-addresses.json).
+AssetLock is an implementation of a trustless lock contract. Deployment addresses can be found at [contract-addresses.json](https://github.com/Kifen/AssetLock/blob/main/contract-addresses.json).
 
 
 ### Build and Run
