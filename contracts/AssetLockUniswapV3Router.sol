@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
 
-contract AssetLockUniswapRouter {
+contract AssetLockUniswapV3Router {
     ISwapRouter public immutable swapRouter;
     IQuoter public immutable quoter;
     address public immutable token;

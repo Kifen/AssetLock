@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
-import "./AssetLockUniswapRouter.sol";
+import "./AssetLockUniswapV3Router.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract AssetLock is AssetLockUniswapRouter {
+contract AssetLock is AssetLockUniswapV3Router {
     address public executor;
     address public unlocker;
     uint256 public lockTime;
@@ -29,7 +29,7 @@ contract AssetLock is AssetLockUniswapRouter {
         address _token,
         address _weth9,
         uint256 _lockTime
-    ) AssetLockUniswapRouter(_swapRouter, _quoter, _token, _weth9) {
+    ) AssetLockUniswapV3Router(_swapRouter, _quoter, _token, _weth9) {
         executor = msg.sender;
         lockTime = _lockTime;
     }
