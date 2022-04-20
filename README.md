@@ -1,46 +1,51 @@
-# Advanced Sample Hardhat Project
 
-This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
 
-The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.
+# AssetLock
 
-Try running some of the following tasks:
+AssetLock is an implementation of a trustless luck contract. Deployment addresses can be found at [contract-addresses.json](https://github.com/Kifen/AssetLock/blob/main/contract-addresses.json).
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-npx hardhat help
-REPORT_GAS=true npx hardhat test
-npx hardhat coverage
-npx hardhat run scripts/deploy.ts
-TS_NODE_FILES=true npx ts-node scripts/deploy.ts
-npx eslint '**/*.{js,ts}'
-npx eslint '**/*.{js,ts}' --fix
-npx prettier '**/*.{json,sol,md}' --check
-npx prettier '**/*.{json,sol,md}' --write
-npx solhint 'contracts/**/*.sol'
-npx solhint 'contracts/**/*.sol' --fix
+
+### Build and Run
+```
+$ git clone git@github.com:Kifen/AssetLock.git
+$ cd AssetLock
+$ npm install
 ```
 
-# Etherscan verification
+Create file `.env` using below [template](https://github.com/Kifen/AssetLock/blob/main/.env.example):
 
-To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
-
-In this project, copy the .env.example file to a file named .env, and then edit it to fill in the details. Enter your Etherscan API key, your Ropsten node URL (eg from Alchemy), and the private key of the account which will send the deployment transaction. With a valid .env file in place, first deploy your contract:
-
-```shell
-hardhat run --network ropsten scripts/deploy.ts
+```
+PK= 
+RINKEBY_URL=
+ETHERSCAN_API_KEY=
 ```
 
-Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
+The following testing scripts have been implemented:
 
-```shell
-npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
+### withdraw
+
+- `npx hardhat withdraw --asset <TOKEN or ETH>  --network rinkeby`
+
+Example:
+```
+$ npx hardhat withdraw --asset ETH --network rinkeby
 ```
 
-# Performance optimizations
+### swapEthForTokens
 
-For faster runs of your tests and scripts, consider skipping ts-node's type checking by setting the environment variable `TS_NODE_TRANSPILE_ONLY` to `1` in hardhat's environment. For more details see [the documentation](https://hardhat.org/guides/typescript.html#performance-optimizations).
+- `npx hardhat swap --amount-in <amount> --unlocker <address> --to <TOKEN or ETH> --network rinkeby`
+
+Example:
+```
+$ npx hardhat swap --amount-in 0.00000006 --unlocker 0xc62661BAe6E8346725305318476521E87977E371 --to TOKEN --network rinkeby
+```
+
+### addLiquidity
+
+- `npx hardhat add-liquidity --token-a <supported ERC20 token address> --amount-a <amount of tokenA to add as liquidity> --amount-b <amount of ETH to add as liquidity> --network rinkeby`
+
+Example:
+```
+ $ npx hardhat add-liquidity --token-a 0xB18ae96948108d0D8B9aD88C76Ea0e4AA2596176 --amount-a 19000 --amount-b 0.008 --network rinkeby
+```
+
