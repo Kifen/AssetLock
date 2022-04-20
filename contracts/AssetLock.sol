@@ -12,14 +12,19 @@ contract AssetLock is AssetLockUniswapV2Router {
     uint256 public swapedEth;
     uint256 public swapedToken;
 
+    /// @notice Emitted when lock time is changed
     event NewLockTime(uint256 indexed oldLockTime, uint256 indexed newLockTime);
 
+    /// @notice Emitted when a timeout is set for a swap
     event Lock(uint256 indexed timeOut, address indexed unlocker);
 
+    /// @notice Emitted when a swapped ETH is withdrawn
     event WithdrawEth(address indexed to, uint256 indexed amount);
 
+    /// @notice Emitted when a swapped TOKEN is withdrawn
     event WithdrawTokens(address indexed to, uint256 indexed amount);
 
+    /// @notice Emitted when a ETH is sent to contract
     event Received(address sender, uint256 amount);
 
     error UnAuthorized();
@@ -59,6 +64,11 @@ contract AssetLock is AssetLockUniswapV2Router {
         _;
     }
 
+    /**
+     * @notice Executes a swap from ETH to Token
+     * @param _amountOut The minimum amount of output tokens that must be received for the transaction not to * revert
+     * @param _unlocker acount to withdraw swapped ETH
+     */
     function swapExactETHForTokens(uint256 _amountOut, address _unlocker)
         external
         payable
@@ -71,6 +81,12 @@ contract AssetLock is AssetLockUniswapV2Router {
         _setTimeout(_unlocker);
     }
 
+    /**
+     * @notice Executes a swap from Token to Eth
+     * @param _amountIn The amount of input tokens to send.
+     * @param _amountOut The minimum amount of output tokens that must be received for the transaction not to  * revert.
+     * @param _unlocker acount to withdraw swapped ETH
+     */
     function swapExactTokensForEth(
         uint256 _amountIn,
         uint256 _amountOut,
@@ -82,6 +98,10 @@ contract AssetLock is AssetLockUniswapV2Router {
         _setTimeout(_unlocker);
     }
 
+    /**
+     * @notice Transfers ETH to unlocker if timeout has not been reached
+     * or it tranfers ETH to executor if timeout has expired
+     */
     function withdrawEth() external payable canWithdraw {
         uint256 amount = swapedEth;
         require(amount > 0, "AssetLock: ZERO ETH to withdraw");
@@ -92,6 +112,10 @@ contract AssetLock is AssetLockUniswapV2Router {
         emit WithdrawEth(msg.sender, amount);
     }
 
+    /**
+     * @notice Transfers Tokens to unlocker if timeout has not been reached
+     * or it tranfers Tokens to executor if timeout has expired
+     */
     function withdrawTokens() external payable canWithdraw {
         IERC20 erc20Token = IERC20(TOKEN);
         uint256 amount = swapedToken;
@@ -104,6 +128,10 @@ contract AssetLock is AssetLockUniswapV2Router {
         emit WithdrawTokens(msg.sender, amount);
     }
 
+    /**
+     * @notice set the lock time
+     *  @param _newLockTime The new lock time
+     */
     function _setLockTime(uint256 _newLockTime) external onlyExecutor {
         uint256 oldLockTime = lockTime;
         lockTime = _newLockTime;
@@ -111,6 +139,10 @@ contract AssetLock is AssetLockUniswapV2Router {
         emit NewLockTime(oldLockTime, _newLockTime);
     }
 
+    /**
+     * @notice updates the lockTimeOut and unlocker
+     *  @param _unlocker account eligible to unlock swapped assets
+     */
     function _setTimeout(address _unlocker) internal {
         uint256 now = block.timestamp;
         lockTimeOut = now + lockTime;
