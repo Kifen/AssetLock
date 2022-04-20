@@ -49,6 +49,7 @@ task("add-liquidity", "create a uniswap v2 pair")
         ethBalanceBeforeAddingLiquidity
       )}`
     );
+
     console.log(
       `Token balance before adding liquidity: ${ethers.utils.formatEther(
         tokenBalanceBeforeAddingLiquidity

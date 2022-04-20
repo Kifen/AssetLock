@@ -22,9 +22,11 @@ contract AssetLock is AssetLockUniswapV2Router {
 
     event WithdrawTokens(address indexed to, uint256 indexed amount);
 
+    event Received(address sender, uint256 amount);
+
     constructor(
         IUniswapV2Router02 _uniV2Router,
-        address _token,
+        IERC20 _token,
         uint256 _lockTime
     ) AssetLockUniswapV2Router(_uniV2Router, _token) {
         executor = msg.sender;
@@ -70,10 +72,10 @@ contract AssetLock is AssetLockUniswapV2Router {
 
     function swapExactTokensForEth(
         uint256 _amountIn,
-        uint256 _amountOutMin,
+        uint256 _amountOut,
         address _unlocker
     ) external lockInactive onlyExecutor {
-        _swapExactTokensForEth(_amountIn, _amountOutMin);
+        _swapExactTokensForEth(_amountIn, _amountOut);
         _lock(_unlocker);
     }
 
@@ -106,4 +108,8 @@ contract AssetLock is AssetLockUniswapV2Router {
 
         emit Lock(lockTime, now, _unlocker);
     }
-}
+
+receive() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+  }

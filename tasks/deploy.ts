@@ -5,9 +5,9 @@ import { saveContractAddress } from "./utils";
 task("deploy-all")
   .addParam("amountA", "amount of tokenA to add as liquidity")
   .addParam("amountB", "amount of ETH to add as liquidity")
-  .setAction(async (taskArgs, { run, ethers }) => {
-    const signers = await ethers.getSigners();
-    const network = await ethers.getDefaultProvider().getNetwork();
+  .setAction(async (taskArgs, hre) => {
+    const signers = await hre.ethers.getSigners();
+    const networkName = hre.network.name;
 
     const IUniswapV2Router02 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
     const lockTime = 86400;
@@ -19,7 +19,7 @@ task("deploy-all")
 
     console.log(`MockToken deployed to ${MockToken.address}`);
 
-    saveContractAddress(network.chainId, "MockToken", MockToken.address);
+    saveContractAddress(networkName, "MockToken", MockToken.address);
 
     const AssetLock = await new AssetLock__factory(signers[0]).deploy(
       IUniswapV2Router02,
@@ -29,13 +29,13 @@ task("deploy-all")
 
     console.log(`AssetLock deployed to ${AssetLock.address}`);
 
-    saveContractAddress(network.chainId, "AssetLock", AssetLock.address);
+    saveContractAddress(networkName, "AssetLock", AssetLock.address);
 
-    const poolAddress = await run("create-uniswap-pair", {
+    const poolAddress = await hre.run("create-uniswap-pair", {
       tokenB: MockToken.address,
     });
 
-    await run("add-liquidity", {
+    await hre.run("add-liquidity", {
       tokenA: MockToken.address,
       amountA: taskArgs.amountA,
       amountB: taskArgs.amountB,
