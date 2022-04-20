@@ -2,11 +2,14 @@ import { task } from "hardhat/config";
 import { AssetLock__factory, MockToken__factory } from "../typechain";
 import addresses from "../contract-addresses.json";
 import UniV2RouterABI from "@uniswap/v2-periphery/build/UniswapV2Router02.json";
-import { parseBN, ethersProvider, signer } from "./utils";
-import { Contract, BigNumber } from "ethers";
-
-const ETH = "ETH";
-const TOKEN = "TOKEN";
+import {
+  parseBN,
+  ethersProvider,
+  signer,
+  ETH,
+  TOKEN,
+  quickChecks,
+} from "./utils";
 
 task("swap")
   .addParam("amountIn", "amount to swap")
@@ -82,10 +85,14 @@ task("swap")
           amountOutMin
         )} ${await Token.symbol()}`
       );
-
+      console.log(
+        "SEE: ",
+        hre.ethers.utils.parseUnits(taskArgs.amountIn, "ether")
+      );
       await (
-        await AssetLock.swapEthForExactTokens(amountOutMin, taskArgs.unlocker, {
-          value: parseBN(taskArgs.amountIn),
+        await AssetLock.swapExactETHForTokens(amountOutMin, taskArgs.unlocker, {
+          value: hre.ethers.utils.parseUnits(taskArgs.amountIn, "ether"),
+          ...options,
         })
       ).wait(3);
     } else if (taskArgs.to === ETH) {
@@ -125,9 +132,3 @@ task("swap")
       )}`
     );
   });
-
-const quickChecks = async (to: string) => {
-  if (to != ETH && to != TOKEN) {
-    throw new Error(`to must be ${ETH} or ${TOKEN}`);
-  }
-};

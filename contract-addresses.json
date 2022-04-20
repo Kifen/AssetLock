@@ -1,6 +1,6 @@
 {
     "rinkeby": {
-        "MockToken": "0xB18ae96948108d0D8B9aD88C76Ea0e4AA2596176",
-        "AssetLock": "0xF102fCC5773692bBB4E1A51433D7c9B3393e2a57"
+        "MockToken": "0xa70A8CC6139F04B7114dAdD0ff053c2C1A87676c",
+        "AssetLock": "0xD38801d251c72C301553Ac47Cf981228718F1396"
     }
 }

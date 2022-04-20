@@ -4,6 +4,9 @@ import { providers, Wallet, BigNumber, utils } from "ethers";
 import { Provider } from "@ethersproject/abstract-provider";
 import { Signer } from "@ethersproject/abstract-signer";
 
+export const ETH = "ETH";
+export const TOKEN = "TOKEN";
+
 export const ethersProvider = (): Provider => {
   return new providers.JsonRpcProvider(process.env.RINKEBY_URL);
 };
@@ -50,4 +53,10 @@ export const saveContractAddress = (
 
 export const toBN = (value: number): BigNumber => {
   return BigNumber.from(value).mul(BigNumber.from(10).pow(18));
+};
+
+export const quickChecks = async (to: string) => {
+  if (to != ETH && to != TOKEN) {
+    throw new Error(`to must be ${ETH} or ${TOKEN}`);
+  }
 };

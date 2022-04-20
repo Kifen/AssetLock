@@ -10,7 +10,7 @@ task("deploy-all")
     const networkName = hre.network.name;
 
     const IUniswapV2Router02 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-    const lockTime = 86400;
+    const lockTime = 300;
 
     const MockToken = await new MockToken__factory(signers[0]).deploy(
       "MockToken",
@@ -39,6 +39,5 @@ task("deploy-all")
       tokenA: MockToken.address,
       amountA: taskArgs.amountA,
       amountB: taskArgs.amountB,
-      lp: poolAddress,
     });
   });

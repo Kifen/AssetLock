@@ -1,28 +1,36 @@
 import { task } from "hardhat/config";
-import addresses from "../contract-addresses.json";
 import UniV2RouterABI from "@uniswap/v2-periphery/build/UniswapV2Router02.json";
+import UniswapV2FactoryABI from "@uniswap/v2-core/build/UniswapV2Factory.json";
 import { signer, parseBN, ethersProvider } from "./utils";
 
 task("add-liquidity", "create a uniswap v2 pair")
   .addParam("tokenA", "ERC20 token to add to pool")
   .addParam("amountA", "amount of tokenA to add as liquidity")
   .addParam("amountB", "amount of ETH to add as liquidity")
-  .addParam("lp", "LP token address")
   .setAction(async (taskArgs, { ethers }) => {
     const [deployer] = await ethers.getSigners();
-    const LP = taskArgs.lp;
 
-    const amountTokenDesired = taskArgs.amountA;
-    const amountTokenMin = amountTokenDesired;
-    const amountETHMin = taskArgs.amountB;
-    const to = deployer.address;
-    const deadline = Math.floor(Date.now());
+    const UniswapV2Factory = await new ethers.Contract(
+      "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+      UniswapV2FactoryABI.abi,
+      await signer()
+    );
 
     const UniV2Router = await new ethers.Contract(
       "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
       UniV2RouterABI.abi,
       await signer()
     );
+
+    const WETH = await UniV2Router.WETH();
+
+    const LP = await UniswapV2Factory.getPair(WETH, taskArgs.tokenA);
+
+    const amountTokenDesired = taskArgs.amountA;
+    const amountTokenMin = amountTokenDesired;
+    const amountETHMin = taskArgs.amountB;
+    const to = deployer.address;
+    const deadline = Math.floor(Date.now());
 
     const Provider = ethersProvider();
     const ethBalanceBeforeAddingLiquidity = await Provider.getBalance(
@@ -66,7 +74,11 @@ task("add-liquidity", "create a uniswap v2 pair")
         parseBN(amountETHMin),
         to,
         deadline,
-        { value: parseBN(taskArgs.amountB) }
+        {
+          value: parseBN(taskArgs.amountB),
+          gasPrice: ethers.utils.parseUnits("100", "gwei"),
+          gasLimit: 5000000,
+        }
       )
     ).wait(3);
 

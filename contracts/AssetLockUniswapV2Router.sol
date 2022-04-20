@@ -18,23 +18,25 @@ contract AssetLockUniswapV2Router {
         TOKEN = _token;
     }
 
-    function _swapEthForExactTokens(uint256 _amountOut) internal {
+    function _swapExactETHForTokens(uint256 _amountOut)
+        internal
+        returns (uint256 outputAmount)
+    {
         address[] memory path = new address[](2);
         path[0] = uniswapV2Router.WETH();
         path[1] = address(TOKEN);
 
-        uint256[] memory amounts = uniswapV2Router.swapETHForExactTokens(
-            _amountOut,
-            path,
-            address(this),
-            block.timestamp
-        );
+        uint256[] memory amounts = uniswapV2Router.swapExactETHForTokens{
+            value: msg.value
+        }(_amountOut, path, address(this), block.timestamp);
 
-        emit SwapEthForTokens(msg.value, amounts[1]);
+        outputAmount = amounts[amounts.length - 1];
+        emit SwapEthForTokens(msg.value, outputAmount);
     }
 
     function _swapExactTokensForEth(uint256 _amountIn, uint256 _amountOut)
         internal
+        returns (uint256 outputAmount)
     {
         address[] memory path = new address[](2);
         path[0] = address(TOKEN);
@@ -50,6 +52,8 @@ contract AssetLockUniswapV2Router {
             block.timestamp
         );
 
-        emit SwapTokensForEth(_amountIn, amounts[1]);
+        outputAmount = amounts[amounts.length - 1];
+
+        emit SwapTokensForEth(_amountIn, outputAmount);
     }
 }
