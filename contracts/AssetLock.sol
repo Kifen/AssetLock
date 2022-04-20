@@ -1,11 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
-import "./AssetLockUniswapV3Router.sol";
+import "./AssetLockUniswapV2Router.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract AssetLock is AssetLockUniswapV3Router {
+contract AssetLock is AssetLockUniswapV2Router {
     address public executor;
     address public unlocker;
     uint256 public lockTime;
@@ -24,12 +23,11 @@ contract AssetLock is AssetLockUniswapV3Router {
     event WithdrawTokens(address indexed to, uint256 indexed amount);
 
     constructor(
-        ISwapRouter _swapRouter,
-        IQuoter _quoter,
+        IUniswapV2Router02 _uniV2Router,
         address _token,
         address _weth9,
         uint256 _lockTime
-    ) AssetLockUniswapV3Router(_swapRouter, _quoter, _token, _weth9) {
+    ) AssetLockUniswapV2Router(_uniV2Router, _token) {
         executor = msg.sender;
         lockTime = _lockTime;
     }
@@ -61,22 +59,22 @@ contract AssetLock is AssetLockUniswapV3Router {
         _;
     }
 
-    function swapEthToExactToken(uint256 _amountOutMinimum, address _unlocker)
+    function swapEthForExactTokens(uint256 _amountOut, address _unlocker)
         external
         payable
         lockInactive
         onlyExecutor
     {
-        _swapEthToExactToken(_amountOutMinimum);
+        _swapEthForExactTokens(_amountOut);
         _lock(_unlocker);
     }
 
-    function swapTokenToExactEth(
+    function swapExactTokensForEth(
         uint256 _amountIn,
-        uint256 _amountOutMinimum,
+        uint256 _amountOutMin,
         address _unlocker
     ) external lockInactive onlyExecutor {
-        _swapTokenToExactEth(_amountIn, _amountOutMinimum);
+        _swapExactTokensForEth(_amountIn, _amountOutMin);
         _lock(_unlocker);
     }
 
@@ -88,7 +86,7 @@ contract AssetLock is AssetLockUniswapV3Router {
     }
 
     function withdrawTokens() external payable t canWithdraw {
-        IERC20 erc20Token = IERC20(token);
+        IERC20 erc20Token = IERC20(TOKEN);
         uint256 amount = erc20Token.balanceOf(address(this));
         erc20Token.transfer(msg.sender, amount);
 
