@@ -7,7 +7,7 @@ const addressFile = "contract-addresses.json";
 export const getSavedContractAddresses = () => {
   let json: any;
   try {
-    json = fs.readFileSync(path.join(__dirname, `../../${addressFile}`));
+    json = fs.readFileSync(path.join(__dirname, `../${addressFile}`));
   } catch (err) {
     json = "{}";
   }
@@ -25,7 +25,7 @@ export const saveContractAddress = (
   addrs[network][contract] = address;
 
   fs.writeFileSync(
-    path.join(__dirname, `../../${addressFile}`),
+    path.join(__dirname, `../${addressFile}`),
     JSON.stringify(addrs, null, "    ")
   );
 };

@@ -1,60 +1,95 @@
 import { task } from "hardhat/config";
-import ContractAddresses from "../contract-addresses.json";
-import UniswapV3FactoryABI from "@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json";
-import { ethersProvider, signer, parseBN } from "./utils";
-import { AlphaRouter } from "@uniswap/smart-order-router";
-import { Token, CurrencyAmount, Percent, TradeType } from "@uniswap/sdk-core";
-import { JSBI } from "@uniswap/sdk";
-import Web3 from "web3";
+import addresses from "../contract-addresses.json";
+import UniV2RouterABI from "@uniswap/v2-periphery/build/UniswapV2Router02.json";
+import { signer, parseBN, ethersProvider } from "./utils";
 
-const web3Provider = new Web3(process.env.RINKEBY_URL);
-
-const router = new AlphaRouter({
-  chainId: 4,
-  provider: web3Provider,
-});
-
-task("add-liquidity", "add liquidity to pool")
-  .addParam("tokenB", "The other of the two tokens in the desired pool")
-  .addParam("tokenB_symbol", "")
-  .addParam("tokenB_name", "")
-  .addParam("fee", "The desired fee for the pool")
+task("add-liquidity", "create a uniswap v2 pair")
+  .addParam("tokenA", "ERC20 token to add to pool")
+  .addParam("amountA", "amount of tokenA to add as liquidity")
+  .addParam("amountB", "amount of ETH to add as liquidity")
+  .addParam("lp", "LP token address")
   .setAction(async (taskArgs, { ethers }) => {
     const [deployer] = await ethers.getSigners();
+    const LP = taskArgs.lp;
 
-    const WETH = new Token(4, taskArgs.tokenA, 18, "WETH", "Wrapped Ether");
+    const amountTokenDesired = taskArgs.amountA;
+    const amountTokenMin = amountTokenDesired;
+    const amountETHMin = taskArgs.amountB;
+    const to = deployer.address;
+    const deadline = Math.floor(Date.now());
 
-    const token = new Token(
-      4,
-      taskArgs.tokenB,
-      18,
-      taskArgs.tokenB_symbol,
-      taskArgs.tokenB_name
+    const UniV2Router = await new ethers.Contract(
+      "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+      UniV2RouterABI.abi,
+      await signer()
     );
 
-    const typedValueParsed = "10000000000000000000";
-    const wethAmount = CurrencyAmount.fromRawAmount(
-      WETH,
-      JSBI.BigInt(typedValueParsed)
+    const Provider = ethersProvider();
+    const ethBalanceBeforeAddingLiquidity = await Provider.getBalance(
+      deployer.address
     );
 
-    const route = await router.route(wethAmount, token, TradeType.EXACT_INPUT, {
-      recipient: deployer.address,
-      slippageTolerance: new Percent(5, 100),
-      deadline: Math.floor(Date.now() / 1000 + 1800),
-    });
+    const TokenA = await ethers.getContractFactory("MockToken");
+    const tokenA = await TokenA.attach(taskArgs.tokenA);
+    const tokenBalanceBeforeAddingLiquidity = await tokenA.balanceOf(
+      deployer.address
+    );
 
-    console.log(`Quote Exact In: ${route.quote.toFixed(2)}`);
-    console.log(`Gas Adjusted Quote In: ${route.quoteGasAdjusted.toFixed(2)}`);
-    console.log(`Gas Used USD: ${route.estimatedGasUsedUSD.toFixed(6)}`);
+    console.log("Approving token transfer...");
 
-    const transaction = {
-      data: route.methodParameters.calldata,
-      to: 0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45,
-      value: ethers.BigNumber.from(route.methodParameters.value),
-      from: deployer.address,
-      gasPrice: ethers.BigNumber.from(route.gasPriceWei),
-    };
+    await (
+      await tokenA.approve(
+        "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+        parseBN(taskArgs.amountA)
+      )
+    ).wait(3);
 
-    await web3Provider.eth.sendTransaction(transaction);
+    console.log(
+      `ETH balance before adding liquidity: ${ethers.utils.formatEther(
+        ethBalanceBeforeAddingLiquidity
+      )}`
+    );
+    console.log(
+      `Token balance before adding liquidity: ${ethers.utils.formatEther(
+        tokenBalanceBeforeAddingLiquidity
+      )}`
+    );
+
+    console.log("Adding liquidity...");
+
+    await (
+      await UniV2Router.addLiquidityETH(
+        taskArgs.tokenA,
+        parseBN(amountTokenDesired),
+        parseBN(amountTokenMin),
+        parseBN(amountETHMin),
+        to,
+        deadline,
+        { value: parseBN(taskArgs.amountB) }
+      )
+    ).wait(3);
+
+    console.log("Liquidity added..");
+
+    const ethBalanceAfterAddingLiquidity = await Provider.getBalance(
+      deployer.address
+    );
+    const tokenBalanceAfterAddingLiquidity = await tokenA.balanceOf(
+      deployer.address
+    );
+    console.log(
+      `ETH balance after adding liquidity: ${ethers.utils.formatEther(
+        ethBalanceAfterAddingLiquidity
+      )}`
+    );
+    console.log(
+      `Token balance after adding liquidity: ${ethers.utils.formatEther(
+        tokenBalanceAfterAddingLiquidity
+      )}`
+    );
+
+    const ERC20 = await ethers.getContractFactory("ERC20");
+    const lp = await ERC20.attach(LP);
+    const balance = await lp.balanceOf(deployer.address);
+    console.log(`UNI-V2 token balance: ${ethers.utils.formatEther(balance)}`);
   });

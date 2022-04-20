@@ -27,6 +27,14 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
+    localhost: {
+      url: "http://127.0.0.1:8545",
+    },
+    hardhat: {
+      forking: {
+        url: "https://rinkeby.infura.io/v3/5ba43398bcdc4b538127b2e20bcf2b2d",
+      },
+    },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
       accounts: process.env.PK !== undefined ? [process.env.PK] : [],

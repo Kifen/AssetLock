@@ -25,7 +25,6 @@ contract AssetLock is AssetLockUniswapV2Router {
     constructor(
         IUniswapV2Router02 _uniV2Router,
         address _token,
-        address _weth9,
         uint256 _lockTime
     ) AssetLockUniswapV2Router(_uniV2Router, _token) {
         executor = msg.sender;

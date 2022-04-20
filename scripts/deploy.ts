@@ -24,9 +24,7 @@ async function main() {
   const signers = await ethers.getSigners();
   const network = await ethers.getDefaultProvider().getNetwork();
 
-  const swapRouter02 = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45";
-  const quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
-  const WETH9 = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
+  const IUniswapV2Router02 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
   const lockTime = 86400;
 
   const MockToken = await new MockToken__factory(signers[0]).deploy(
@@ -39,10 +37,8 @@ async function main() {
   saveContractAddress(network.chainId, "MockToken", MockToken.address);
 
   const AssetLock = await new AssetLock__factory(signers[0]).deploy(
-    swapRouter02,
-    quoter,
+    IUniswapV2Router02,
     MockToken.address,
-    WETH9,
     lockTime
   );
 

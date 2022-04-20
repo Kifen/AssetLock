@@ -1,1 +1,6 @@
-{}
+{
+    "1": {
+        "MockToken": "0x19fFF3964c9782637F1c74f5e121cF9c73162d1E",
+        "AssetLock": "0x52E8DBE45ddD14Ef87FB273E1E93819d8553c337"
+    }
+}
